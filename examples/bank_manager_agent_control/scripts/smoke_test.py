@@ -13,12 +13,13 @@ Expect all OFFLINE checks PASS and all DEPS checks PASS.
 
 import os
 import sys
+import time
 import traceback
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent          # scripts/
-EXAMPLE = HERE.parent                           # the example root
-RUNTIME = EXAMPLE / "runtime"                    # engine modules + knowledge corpus
+HERE = Path(__file__).resolve().parent         # scripts/
+EXAMPLE = HERE.parent                         # the example root
+RUNTIME = EXAMPLE / "runtime"                 # engine modules + knowledge corpus
 sys.path.insert(0, str(RUNTIME))  # allow sibling imports (kb_backend, feature_policy, …)
 
 _passed, _failed, _skipped = 0, 0, 0
@@ -26,15 +27,19 @@ _passed, _failed, _skipped = 0, 0, 0
 
 def check(name, fn):
     global _passed, _failed
+    start_time = time.time()
     try:
         fn()
-        print(f"  PASS  {name}")
+        duration = time.time() - start_time
+        print(f"  PASS  {name} ({duration:.3f}s)")
         _passed += 1
     except AssertionError as e:
-        print(f"  FAIL  {name}: {e}")
+        duration = time.time() - start_time
+        print(f"  FAIL  {name} ({duration:.3f}s): {e}")
         _failed += 1
     except Exception as e:  # noqa: BLE001
-        print(f"  FAIL  {name}: {type(e).__name__}: {e}")
+        duration = time.time() - start_time
+        print(f"  FAIL  {name} ({duration:.3f}s): {type(e).__name__}: {e}")
         traceback.print_exc()
         _failed += 1
 
